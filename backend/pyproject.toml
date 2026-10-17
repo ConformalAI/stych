@@ -131,6 +131,7 @@ include = [
     "llm*",
     "mcp_infra*",
     "memory*",
+    "ontology*",
     "react_engine*",
     "tools*",
     "tracing*",

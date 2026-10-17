@@ -54,7 +54,9 @@ jobs:
       - name: Type-check and build
         run: npm run build
       - name: Tests
-        run: npm test
+        # `npm test` also regenerates the backend contract types (needs uv + backend deps);
+        # run the unit tests directly here.
+        run: npx vitest run
 
   compose:
     runs-on: ubuntu-latest
