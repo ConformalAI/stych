@@ -66,7 +66,12 @@ describe('computeTraceGap', () => {
     it('subagent-start gap: call_agent running with no children yet', () => {
         // orchestrator → subagent
         const parts = [
-            part({ id: 'orch-1', phase: 'start', action: 'call_agent', input: '{"agent":"analysis"}' }),
+            part({
+                id: 'orch-1',
+                phase: 'start',
+                action: 'call_agent',
+                input: '{"agent":"analysis"}',
+            }),
         ];
         expect(computeTraceGap(parts, live)).toEqual({
             level: 'subagent-start',

@@ -37,9 +37,7 @@ export default function TextPreview({ sessionId, source }: TextPreviewProps) {
             })
             .catch((err) => {
                 if (cancelled) return;
-                setError(
-                    err?.response?.data?.detail || err?.message || 'Failed to load file.'
-                );
+                setError(err?.response?.data?.detail || err?.message || 'Failed to load file.');
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);

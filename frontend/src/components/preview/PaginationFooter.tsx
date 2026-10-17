@@ -74,13 +74,8 @@ export default function PaginationFooter({
             style={{ borderColor: 'var(--c-glass-border)', color: 'var(--c-mist-fg)' }}
         >
             <div className="flex items-center gap-2 min-w-0">
-                <span
-                    title={
-                        approx ? 'Estimated count — the exact count timed out' : undefined
-                    }
-                >
-                    {rangeStart.toLocaleString()}–{rangeEnd.toLocaleString()} of{' '}
-                    {approx ? '~' : ''}
+                <span title={approx ? 'Estimated count — the exact count timed out' : undefined}>
+                    {rangeStart.toLocaleString()}–{rangeEnd.toLocaleString()} of {approx ? '~' : ''}
                     {filteredRows.toLocaleString()}
                     {filteredRows < totalRows &&
                         ` · filtered from ${approx ? '~' : ''}${totalRows.toLocaleString()}`}

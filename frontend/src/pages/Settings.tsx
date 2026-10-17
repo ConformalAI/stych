@@ -1556,7 +1556,8 @@ export default function Settings() {
                                                     {
                                                         label: 'Pending',
                                                         value: memoryStatus.pending_operations,
-                                                        highlight: memoryStatus.pending_operations > 0,
+                                                        highlight:
+                                                            memoryStatus.pending_operations > 0,
                                                     },
                                                 ].map(({ label, value, highlight }) => (
                                                     <div

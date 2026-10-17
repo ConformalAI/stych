@@ -56,10 +56,7 @@ export default function FoldLoader({
                 for (const s of segs) {
                     if (d <= s.len) {
                         const t = s.len ? d / s.len : 0;
-                        out.push([
-                            s.a[0] + (s.b[0] - s.a[0]) * t,
-                            s.a[1] + (s.b[1] - s.a[1]) * t,
-                        ]);
+                        out.push([s.a[0] + (s.b[0] - s.a[0]) * t, s.a[1] + (s.b[1] - s.a[1]) * t]);
                         break;
                     }
                     d -= s.len;
@@ -92,8 +89,7 @@ export default function FoldLoader({
         ]);
         const shapes = [triangle, square, circle];
 
-        const ease = (t: number) =>
-            t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
         // Resolve "currentColor" / "var(--token)" against the live computed style
         // so the icon matches the active (light/dark) palette. Resolved once at

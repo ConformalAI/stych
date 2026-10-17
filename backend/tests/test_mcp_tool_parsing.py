@@ -143,8 +143,7 @@ def test_parse_tools_falls_back_to_dict_when_no_model_dump():
 # Minimal newline-delimited JSON-RPC MCP server (no node/npx dependency) that
 # records one line to __MARKER__ every time it's spawned, so the test can count
 # how many subprocesses actually started.
-_COUNTING_SERVER = textwrap.dedent(
-    """
+_COUNTING_SERVER = textwrap.dedent("""
     import sys, json
     with open(r"{marker}", "a") as f:
         f.write("spawned\\n")
@@ -166,8 +165,7 @@ _COUNTING_SERVER = textwrap.dedent(
         elif method == "tools/list":
             send({{"jsonrpc":"2.0","id":mid,"result":{{"tools":[
                 {{"name":"ping","description":"p","inputSchema":{{"type":"object","properties":{{}}}}}}]}}}})
-    """
-)
+    """)
 
 
 def _server_def(script_path: str) -> MCPServerDef:

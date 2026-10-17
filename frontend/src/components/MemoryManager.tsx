@@ -441,8 +441,8 @@ function OverviewTab({
                         </div>
                     ))}
                     <span className="text-xs" style={{ color: 'var(--c-ink-2)' }}>
-                        · Hover to read · Drag nodes to rearrange · Scroll to zoom · Drag
-                        background to pan
+                        · Hover to read · Drag nodes to rearrange · Scroll to zoom · Drag background
+                        to pan
                     </span>
                 </div>
             </div>
@@ -638,11 +638,14 @@ function BrowseTab({
         const other = new Map<string, number>();
         for (const e of entries)
             for (const t of e.tags) {
-                const bucket = t.startsWith('dataset:') ? ds : t.startsWith('session:') ? ss : other;
+                const bucket = t.startsWith('dataset:')
+                    ? ds
+                    : t.startsWith('session:')
+                      ? ss
+                      : other;
                 bucket.set(t, (bucket.get(t) ?? 0) + 1);
             }
-        const sorted = (m: Map<string, number>) =>
-            [...m.entries()].sort((a, b) => b[1] - a[1]);
+        const sorted = (m: Map<string, number>) => [...m.entries()].sort((a, b) => b[1] - a[1]);
         return { datasets: sorted(ds), sessions: sorted(ss), others: sorted(other) };
     }, [entries]);
 
@@ -706,7 +709,11 @@ function BrowseTab({
             }
             return order
                 .filter((t) => by.has(t))
-                .map((t) => ({ key: t, label: TYPE_STYLES[t]?.label ?? t, items: by.get(t) ?? [] }));
+                .map((t) => ({
+                    key: t,
+                    label: TYPE_STYLES[t]?.label ?? t,
+                    items: by.get(t) ?? [],
+                }));
         }
         const buckets: { key: string; label: string; items: MemoryEntry[] }[] = [
             { key: 'today', label: 'Today', items: [] },
@@ -1085,8 +1092,11 @@ function BrowseTab({
                                                 const meta = isDataset
                                                     ? CONNECTOR_META[connectorOf(raw.slice(8))]
                                                     : null;
-                                                const ChipIcon = meta?.Icon ?? (isSession ? MessageSquare : Tag);
-                                                const accent = meta?.color ?? (isSession ? '#a78bfa' : undefined);
+                                                const ChipIcon =
+                                                    meta?.Icon ?? (isSession ? MessageSquare : Tag);
+                                                const accent =
+                                                    meta?.color ??
+                                                    (isSession ? '#a78bfa' : undefined);
                                                 const label = isDataset
                                                     ? raw.slice(8)
                                                     : isSession
@@ -1115,7 +1125,11 @@ function BrowseTab({
                                                     >
                                                         <ChipIcon
                                                             className="w-3 h-3 shrink-0"
-                                                            style={accent ? { color: accent } : undefined}
+                                                            style={
+                                                                accent
+                                                                    ? { color: accent }
+                                                                    : undefined
+                                                            }
                                                         />
                                                         <span className="truncate">{label}</span>
                                                         <span className="opacity-60 shrink-0">
@@ -1415,7 +1429,8 @@ function BrowseTab({
                                                             key={tag}
                                                             className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md border"
                                                             style={{
-                                                                borderColor: 'var(--c-glass-border)',
+                                                                borderColor:
+                                                                    'var(--c-glass-border)',
                                                                 color: 'var(--c-ink-2)',
                                                             }}
                                                         >
@@ -1480,7 +1495,9 @@ function BrowseTab({
                                                     >
                                                         <Link2 className="w-3 h-3" />
                                                         Connected memories
-                                                        {conns.length > 0 ? ` (${conns.length})` : ''}
+                                                        {conns.length > 0
+                                                            ? ` (${conns.length})`
+                                                            : ''}
                                                     </p>
                                                     {conns.length === 0 ? (
                                                         <p
@@ -1512,7 +1529,9 @@ function BrowseTab({
                                                                             key={c.id}
                                                                             type="button"
                                                                             onClick={() =>
-                                                                                focusConnection(c.id)
+                                                                                focusConnection(
+                                                                                    c.id
+                                                                                )
                                                                             }
                                                                             className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border text-left max-w-[240px] transition-colors hover:border-[var(--c-signal)]"
                                                                             style={{
@@ -1569,7 +1588,6 @@ function BrowseTab({
                     ))}
                 </div>
             )}
-
         </div>
     );
 }

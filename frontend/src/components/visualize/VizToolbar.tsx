@@ -93,7 +93,10 @@ export default function VizToolbar({
             const versions = await listVizVersions(viz.activeVizId);
             const agentVersions = versions.filter((version) => version.author === 'agent');
             if (agentVersions.length === 0) {
-                setExportStatus({ kind: 'error', message: 'This chart has no AI-generated version.' });
+                setExportStatus({
+                    kind: 'error',
+                    message: 'This chart has no AI-generated version.',
+                });
                 return;
             }
             const latestAgentVersion = agentVersions.reduce((latest, version) =>

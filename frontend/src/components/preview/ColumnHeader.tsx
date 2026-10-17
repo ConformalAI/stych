@@ -78,9 +78,7 @@ export default function ColumnHeader({
                     style={{ color: sortDir ? 'var(--c-signal-text)' : 'inherit' }}
                     title={sortable ? `Sort by ${column.name}` : column.name}
                 >
-                    <span style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                        {column.name}
-                    </span>
+                    <span style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{column.name}</span>
                     {sortable && <SortIcon className={`w-3 h-3 ${sortDir ? '' : 'opacity-40'}`} />}
                 </button>
                 <button
@@ -93,9 +91,7 @@ export default function ColumnHeader({
                         borderColor: 'var(--c-glass-border)',
                         color: 'var(--c-mist-fg)',
                     }}
-                    title={
-                        statsEnabled ? `${column.dtype} — click for column stats` : column.dtype
-                    }
+                    title={statsEnabled ? `${column.dtype} — click for column stats` : column.dtype}
                 >
                     {KIND_LABEL[column.kind]}
                 </button>
@@ -129,7 +125,10 @@ export default function ColumnHeader({
                         style={{ color: 'var(--c-ink)' }}
                     >
                         {column.name}
-                        <span className="ml-2 font-mono text-[10px]" style={{ color: 'var(--c-mist-fg)' }}>
+                        <span
+                            className="ml-2 font-mono text-[10px]"
+                            style={{ color: 'var(--c-mist-fg)' }}
+                        >
                             {column.dtype}
                         </span>
                     </div>

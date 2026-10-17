@@ -35,14 +35,12 @@ def test_values_table_and_from_pipe_are_query_forms():
 
 
 def test_semicolon_batch_splits_and_keeps_section_comments():
-    statements = parse_read_only_statements(
-        """
+    statements = parse_read_only_statements("""
         -- 1. OVERVIEW
         SELECT 1 AS n;
         -- 2. PRODUCTS
         SELECT 2 AS n
-        """
-    )
+        """)
     assert len(statements) == 2
     assert "SELECT 1" in statements[0]
     assert "SELECT 2" in statements[1]

@@ -32,8 +32,7 @@ from mcp_infra.registry import MCPServerDef
 # Minimal newline-delimited JSON-RPC MCP server. On stdin EOF it LINGERS instead of
 # exiting, which forces anyio's teardown ``await _process.wait()`` to be cancelled by
 # the closing task-group scope — the exact production condition.
-_LINGER_SERVER = textwrap.dedent(
-    """
+_LINGER_SERVER = textwrap.dedent("""
     import sys, json, time
     def send(o):
         sys.stdout.write(json.dumps(o) + "\\n"); sys.stdout.flush()
@@ -57,8 +56,7 @@ _LINGER_SERVER = textwrap.dedent(
             send({"jsonrpc":"2.0","id":mid,"result":{
                 "content":[{"type":"text","text":"pong"}],"isError":False}})
     time.sleep(30)  # linger on EOF
-    """
-)
+    """)
 
 # Exits immediately without speaking MCP → the handshake (initialize) fails.
 _QUICK_EXIT_SERVER = "import sys; sys.exit(0)"

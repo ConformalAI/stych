@@ -185,94 +185,95 @@ export default function SpreadsheetGrid({ provider }: SpreadsheetGridProps) {
                                     data.rows.map((row, rowIdx) => {
                                         const rowMeta = data.rowMeta?.[rowIdx];
                                         const grouped =
-                                            rowMeta?.group !== null &&
-                                            rowMeta?.group !== undefined;
+                                            rowMeta?.group !== null && rowMeta?.group !== undefined;
                                         const rowBackground = grouped
                                             ? GROUP_BAND[(rowMeta!.group as number) % 2]
                                             : rowMeta?.severity
                                               ? SEVERITY_TINT[rowMeta.severity]
                                               : undefined;
                                         return (
-                                        <tr
-                                            key={rowIdx}
-                                            className={
-                                                data.rowMeta ? undefined : 'odd:bg-white/5'
-                                            }
-                                            style={
-                                                rowBackground
-                                                    ? { background: rowBackground }
-                                                    : undefined
-                                            }
-                                            title={rowMeta?.tooltip ?? undefined}
-                                        >
-                                            {row.map((value, colIdx) => {
-                                                const cell = formatCell(
-                                                    value,
-                                                    data.columns[colIdx].kind
-                                                );
-                                                const meta = data.cellMeta?.[rowIdx]?.[colIdx];
-                                                const isNumeric =
-                                                    data.columns[colIdx].kind === 'number';
-                                                const metaColor = meta?.severity
-                                                    ? SEVERITY_COLOR[meta.severity]
-                                                    : DIFF_LABEL_COLOR[meta?.diff ?? 'changed'];
-                                                const metaTint = meta?.severity
-                                                    ? SEVERITY_TINT[meta.severity]
-                                                    : meta?.diff
-                                                      ? DIFF_TINT[meta.diff]
-                                                      : undefined;
-                                                const label = meta?.label && (
-                                                    <span
-                                                        className={`px-1 py-px rounded text-[9px] font-mono align-middle whitespace-nowrap ${
-                                                            isNumeric ? 'mr-1.5' : 'ml-1.5'
-                                                        }`}
-                                                        style={{
-                                                            color: metaColor,
-                                                            border: `1px solid ${metaTint ?? DIFF_TINT.changed}`,
-                                                            background:
-                                                                metaTint ?? DIFF_TINT.changed,
-                                                        }}
-                                                    >
-                                                        {meta.label}
-                                                    </span>
-                                                );
-                                                return (
-                                                    <td
-                                                        key={colIdx}
-                                                        className={`px-3 py-1.5 border-b whitespace-nowrap ${cell.className}`}
-                                                        style={{
-                                                            borderColor: 'var(--c-glass-border)',
-                                                            ...(cell.muted
-                                                                ? { color: 'var(--c-mist-fg)' }
-                                                                : {}),
-                                                            ...(metaTint
-                                                                ? { background: metaTint }
-                                                                : {}),
-                                                            // Severity indicator bar on the row's
-                                                            // first cell (survives group banding).
-                                                            ...(colIdx === 0 && rowMeta?.severity
-                                                                ? {
-                                                                      boxShadow: `inset 2px 0 0 ${SEVERITY_COLOR[rowMeta.severity]}`,
-                                                                  }
-                                                                : {}),
-                                                        }}
-                                                        title={meta?.tooltip ?? cell.title}
-                                                    >
-                                                        {isNumeric ? (
-                                                            <>
-                                                                {label}
-                                                                {cell.text}
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                {cell.text}
-                                                                {label}
-                                                            </>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
+                                            <tr
+                                                key={rowIdx}
+                                                className={
+                                                    data.rowMeta ? undefined : 'odd:bg-white/5'
+                                                }
+                                                style={
+                                                    rowBackground
+                                                        ? { background: rowBackground }
+                                                        : undefined
+                                                }
+                                                title={rowMeta?.tooltip ?? undefined}
+                                            >
+                                                {row.map((value, colIdx) => {
+                                                    const cell = formatCell(
+                                                        value,
+                                                        data.columns[colIdx].kind
+                                                    );
+                                                    const meta = data.cellMeta?.[rowIdx]?.[colIdx];
+                                                    const isNumeric =
+                                                        data.columns[colIdx].kind === 'number';
+                                                    const metaColor = meta?.severity
+                                                        ? SEVERITY_COLOR[meta.severity]
+                                                        : DIFF_LABEL_COLOR[meta?.diff ?? 'changed'];
+                                                    const metaTint = meta?.severity
+                                                        ? SEVERITY_TINT[meta.severity]
+                                                        : meta?.diff
+                                                          ? DIFF_TINT[meta.diff]
+                                                          : undefined;
+                                                    const label = meta?.label && (
+                                                        <span
+                                                            className={`px-1 py-px rounded text-[9px] font-mono align-middle whitespace-nowrap ${
+                                                                isNumeric ? 'mr-1.5' : 'ml-1.5'
+                                                            }`}
+                                                            style={{
+                                                                color: metaColor,
+                                                                border: `1px solid ${metaTint ?? DIFF_TINT.changed}`,
+                                                                background:
+                                                                    metaTint ?? DIFF_TINT.changed,
+                                                            }}
+                                                        >
+                                                            {meta.label}
+                                                        </span>
+                                                    );
+                                                    return (
+                                                        <td
+                                                            key={colIdx}
+                                                            className={`px-3 py-1.5 border-b whitespace-nowrap ${cell.className}`}
+                                                            style={{
+                                                                borderColor:
+                                                                    'var(--c-glass-border)',
+                                                                ...(cell.muted
+                                                                    ? { color: 'var(--c-mist-fg)' }
+                                                                    : {}),
+                                                                ...(metaTint
+                                                                    ? { background: metaTint }
+                                                                    : {}),
+                                                                // Severity indicator bar on the row's
+                                                                // first cell (survives group banding).
+                                                                ...(colIdx === 0 &&
+                                                                rowMeta?.severity
+                                                                    ? {
+                                                                          boxShadow: `inset 2px 0 0 ${SEVERITY_COLOR[rowMeta.severity]}`,
+                                                                      }
+                                                                    : {}),
+                                                            }}
+                                                            title={meta?.tooltip ?? cell.title}
+                                                        >
+                                                            {isNumeric ? (
+                                                                <>
+                                                                    {label}
+                                                                    {cell.text}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    {cell.text}
+                                                                    {label}
+                                                                </>
+                                                            )}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
                                         );
                                     })
                                 )}

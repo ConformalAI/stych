@@ -154,7 +154,9 @@ ignore = ["E501"]
 per-file-ignores = { "main.py" = ["E402"] }
 
 [tool.ruff.lint.isort]
-known-first-party = ["agents", "api", "auth", "config", "database", "datasources", "helpers", "llm"]
+# "alembic" is listed because backend/alembic/ shadows the installed package name; without it,
+# different ruff versions classify it differently and import ordering flip-flops.
+known-first-party = ["agents", "alembic", "api", "auth", "config", "database", "datasources", "helpers", "llm"]
 
 [tool.mypy]
 python_version = "3.11"

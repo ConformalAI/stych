@@ -128,14 +128,12 @@ def test_file_backed_inputs_cannot_escape_the_session_workspace(kernel, tmp_path
 def test_two_sources_can_be_joined_inside_one_kernel(kernel):
     kernel.materialize("customers", pa.table({"id": [1, 2], "name": ["A", "B"]}))
     kernel.materialize("orders", pa.table({"customer_id": [2, 2, 3], "amount": [5, 7, 9]}))
-    result = kernel.query(
-        """
+    result = kernel.query("""
         SELECT c.name, SUM(o.amount) AS total
         FROM customers c
         JOIN orders o ON o.customer_id = c.id
         GROUP BY c.name
-        """
-    )
+        """)
     assert result.table.to_pydict() == {"name": ["B"], "total": [12]}
 
 
@@ -190,15 +188,13 @@ def test_empty_and_invalid_sql_have_typed_errors(kernel):
 def test_select_cannot_read_files_or_auto_load_extensions(kernel):
     with pytest.raises(DuckDBExecutionError, match="Cannot access file"):
         kernel.query("SELECT * FROM read_csv_auto('/etc/passwd')")
-    settings = kernel.query(
-        """
+    settings = kernel.query("""
         SELECT
           current_setting('enable_external_access') AS external_access,
           current_setting('autoinstall_known_extensions') AS autoinstall,
           current_setting('autoload_known_extensions') AS autoload,
           current_setting('lock_configuration') AS locked
-        """
-    ).table.to_pydict()
+        """).table.to_pydict()
     assert settings == {
         "external_access": [False],
         "autoinstall": [False],

@@ -105,9 +105,7 @@ export function usePreviewData(provider: PreviewDataProvider, pageSize = 100): U
             })
             .catch((err) => {
                 if (id !== requestId.current || controller.signal.aborted) return;
-                setError(
-                    err?.response?.data?.detail || err?.message || 'Failed to load preview.'
-                );
+                setError(err?.response?.data?.detail || err?.message || 'Failed to load preview.');
                 setLoading(false);
             });
 

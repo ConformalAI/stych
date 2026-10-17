@@ -16,7 +16,9 @@ describe('liveTraceParts upsert', () => {
         useStore.getState().upsertTracePart(part({ id: 'orch-1', agent: 'orchestrator', step: 1 }));
         useStore
             .getState()
-            .upsertTracePart(part({ id: 'orch-1-1', parentId: 'orch-1', agent: 'analysis', step: 1 }));
+            .upsertTracePart(
+                part({ id: 'orch-1-1', parentId: 'orch-1', agent: 'analysis', step: 1 })
+            );
         expect(useStore.getState().liveTraceParts.map((p) => p.id)).toEqual(['orch-1', 'orch-1-1']);
     });
 
@@ -35,10 +37,22 @@ describe('liveTraceParts upsert', () => {
 
     it('keeps two sub-agents that reuse local step=1 distinct (core regression)', () => {
         useStore.getState().upsertTracePart(
-            part({ id: 'orch-1-1', parentId: 'orch-1', agent: 'integration', step: 1, observation: 'int' })
+            part({
+                id: 'orch-1-1',
+                parentId: 'orch-1',
+                agent: 'integration',
+                step: 1,
+                observation: 'int',
+            })
         );
         useStore.getState().upsertTracePart(
-            part({ id: 'orch-2-1', parentId: 'orch-2', agent: 'analysis', step: 1, observation: 'ana' })
+            part({
+                id: 'orch-2-1',
+                parentId: 'orch-2',
+                agent: 'analysis',
+                step: 1,
+                observation: 'ana',
+            })
         );
 
         const parts = useStore.getState().liveTraceParts;
