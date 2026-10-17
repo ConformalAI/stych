@@ -1,0 +1,11 @@
+# Keep local secrets and runtime state out of the image.
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+data/
+logs/

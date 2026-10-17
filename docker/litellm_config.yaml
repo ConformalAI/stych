@@ -1,0 +1,20 @@
+# LiteLLM gateway config for the self-hosted stack (docker-compose.yml).
+#
+# Wildcard routes: any model name beginning with the provider prefix is forwarded to that
+# provider. Set the matching API key in .env. To add a provider (Anthropic, Gemini, Azure,
+# a local Ollama/vLLM server, ...), add another entry and pass its key to the litellm service
+# in docker-compose.yml. See https://docs.litellm.ai/docs/providers
+#
+# The app's default model is LITELLM_DEFAULT_MODEL in .env
+# (default: openrouter/anthropic/claude-sonnet-4.5).
+
+model_list:
+  - model_name: "openrouter/*"
+    litellm_params:
+      model: "openrouter/*"
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  - model_name: "openai/*"
+    litellm_params:
+      model: "openai/*"
+      api_key: os.environ/OPENAI_API_KEY

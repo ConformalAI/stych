@@ -1,0 +1,171 @@
+[project]
+name = "stych-backend"
+version = "0.1.0"
+description = "Stych - AI-powered data analysis and cleaning agent"
+readme = "README.md"
+license = { text = "AGPL-3.0-only" }
+requires-python = ">=3.11"
+dependencies = [
+    # Core Framework
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.6",
+    # Google ADK for Agents
+    "google-adk>=0.5.0",
+    "google-genai>=0.3.0",
+    # A2A Protocol SDK
+    "a2a>=0.1.0",
+    # OpenRouter for LLM Routing
+    "openai>=1.10.0",  # OpenRouter uses OpenAI-compatible API
+    "httpx>=0.26.0",
+    # LiteLLM Support
+    "litellm>=1.40.0",
+    # Langfuse Tracking
+    "langfuse>=2.0.0",
+    # Data Processing
+    "pandas>=2.1.4",
+    "numpy>=1.26.3",
+    "openpyxl>=3.1.2",
+    "pyarrow>=14.0.0",
+    "duckdb>=1.5.0,<2.0.0",
+    "tabulate>=0.9.0",
+    # Fuzzy / similarity linking strategies (DataLinkingAgent). Without these the
+    # fuzzy matchers ImportError and silently fall back to exact matching:
+    # rapidfuzz → levenshtein/jaro_winkler/token_*/partial_ratio; jellyfish →
+    # soundex/metaphone; scikit-learn → cosine_tfidf.
+    "rapidfuzz>=3.0.0",
+    "jellyfish>=1.0.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.8.0",
+    "Pillow>=10.0.0",
+    # Authentication & Security
+    "pyjwt>=2.8.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose[cryptography]>=3.3.0",
+    # SuperTokens — self-hosted auth (email/password + social login + session mgmt)
+    "supertokens-python[fastapi]>=0.27.0",
+    # Google OAuth (kept for supertokens Google provider credential verification)
+    "google-auth>=2.27.0",
+    # Configuration & Environment
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+    # Database (for future use)
+    "sqlalchemy>=2.0.25",
+    "alembic>=1.13.1",
+    # Data source connectors
+    # psycopg2 — kept for Alembic offline migrations and any legacy connection strings.
+    "psycopg2-binary>=2.9.9",
+    # psycopg (v3) — required when APP_DATABASE_URL uses postgresql+psycopg:// scheme.
+    # SQLAlchemy 2.x uses the psycopg3 dialect file (/dialects/postgresql/psycopg.py)
+    # whenever the driver fragment is "psycopg"; without this the import fails at startup.
+    "psycopg[binary]>=3.1.0",
+    "pymssql>=2.3.0",
+    "pymongo>=4.7.0",
+    "redshift-connector>=2.1.0",
+    "cryptography>=42.0.0",
+    # Arrow is already a first-class dependency above; avoid Snowflake's pandas
+    # extra because it currently constrains pandas below the version Stych uses.
+    "snowflake-connector-python>=3.12.0",
+    "google-cloud-bigquery>=3.25.0",
+    "databricks-sql-connector>=3.4.0",
+    # A2A Protocol Support
+    "aiohttp>=3.9.1",
+    "jsonschema>=4.20.0",
+    # S3-compatible object storage (MinIO / AWS S3) — required when STORAGE_BACKEND=s3
+    "boto3>=1.34.0",
+    # Token counting for short-term memory rolling window
+    "tiktoken>=0.6.0",
+    # SQL tokenisation for LLM-output extraction (already in lockfile via google-cloud-spanner)
+    "sqlparse>=0.4.4",
+    # Long-term memory client (Hindsight) — active when HINDSIGHT_ENABLED=true
+    "hindsight-client>=0.6.0",
+    "mcp>=1.27.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+# Install with: pip install -e ".[dev]"
+# Used by scripts/hooks/pre-commit (ruff, black, pyclean) and local testing.
+dev = [
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "pytest-cov>=4.1.0",
+    "pyclean>=0.1.1",
+    "black>=24.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.8.0",
+    "httpx>=0.26.0",
+    "mongomock>=4.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "pytest-cov>=4.1.0",
+    "pyclean>=0.1.1",
+    "black>=24.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.8.0",
+    "httpx>=0.26.0",
+    "mongomock>=4.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+# Explicitly include all top-level packages
+include = [
+    "api*",
+    "agents*",
+    "auth*",
+    "config*",
+    "database*",
+    "datasources*",
+    "execution*",
+    "filters*",
+    "helpers*",
+    "llm*",
+    "mcp_infra*",
+    "memory*",
+    "react_engine*",
+    "tools*",
+    "tracing*",
+    "viz*",
+    "workspace*",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+# E402 in main.py is intentional: dotenv must load before any local imports.
+# E501 is owned by black (the formatter); ruff should not duplicate that check.
+ignore = ["E501"]
+per-file-ignores = { "main.py" = ["E402"] }
+
+[tool.ruff.lint.isort]
+known-first-party = ["agents", "api", "auth", "config", "database", "datasources", "helpers", "llm"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+markers = [
+    "benchmark: marks tests that measure download throughput (requires TRYOPENDATA_API_KEY)",
+]

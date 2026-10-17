@@ -1,0 +1,267 @@
+server:
+  host: "${HOST:0.0.0.0}"
+  port: "${PORT:8000}"
+  debug: "${DEBUG:false}"
+  stream_timeout_seconds: 300
+  # Overridden at startup from CORS_ORIGINS env var (comma-separated) if set.
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+
+llm:
+  provider: "litellm"  # litellm (default), openrouter, google, private
+
+  litellm:
+    base_url: "${LITELLM_BASE_URL:http://localhost:4000}"
+    api_key: "${LITELLM_API_KEY}"
+    default_model: "${LITELLM_DEFAULT_MODEL:openrouter/anthropic/claude-sonnet-4.5}"
+    fallback_models:
+      - "claude-sonnet-4.5"
+      - "gemini-2.5-pro"
+
+  openrouter:
+    api_key: "${OPENROUTER_API_KEY}"
+    base_url: "${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}"
+    default_model: "${OPENROUTER_DEFAULT_MODEL:anthropic/claude-sonnet-4.5}"
+    fallback_models:
+      - "anthropic/claude-sonnet-4.5"
+      - "google/gemini-2.5-pro"
+
+  google:
+    api_key: "${GOOGLE_API_KEY}"
+    project_id: "${GOOGLE_PROJECT_ID}"
+    default_model: "gemini-2.5-pro"
+
+  private:
+    enabled: false
+    base_url: "${PRIVATE_LLM_BASE_URL}"
+    model: "${PRIVATE_LLM_MODEL}"
+    
+  # LLM request defaults
+  temperature: 0.7
+  max_tokens: 4096
+  timeout: 120
+  # Per-step output-token ceiling for ReAct loops. Clamped to the model's own
+  # output limit (see memory/context_window.get_max_output_tokens). Large enough
+  # that a write_file tool call carrying a long file content is not truncated.
+  react_output_cap: 16000
+  # Absolute per-loop transcript budget (tokens). When a loop's transcript
+  # exceeds this, old tool observations are cleared in one hysteresis pass
+  # (react_engine/compaction). ~60% of a 200K Claude window; the absolute cap
+  # keeps 1M+-window models from re-sending huge transcripts every step.
+  react_transcript_budget_tokens: 120000
+
+agents:
+  # Agent behavior configuration
+  max_iterations: 10
+  timeout: 300  # seconds
+  enable_streaming: true
+  # Agent types configuration
+  data_analysis:
+    enabled: true
+    tools:
+      - "describe_statistics"
+      - "correlation_analysis"
+      - "distribution_analysis"
+      - "missing_values_report"
+      
+  data_cleaning:
+    enabled: true
+    tools:
+      - "remove_duplicates"
+      - "handle_missing_values"
+      - "detect_outliers"
+      - "fix_data_types"
+      - "generate_cleaning_code"
+      
+  qa:
+    enabled: true
+    context_window: 5  # number of previous messages
+    
+  orchestrator:
+    enabled: true
+    agent_selection_strategy: "auto"  # auto, manual
+
+# Routing, quality, graph, and cleaning configuration lives in routing_config.yaml.
+# It is deep-merged into this config at startup by load_config() in main.py.
+
+a2a:
+  # A2A Protocol Configuration
+  enabled: true
+  server:
+    host: "${A2A_SERVER_HOST:0.0.0.0}"
+    port: "${A2A_SERVER_PORT:8001}"
+  
+  agent_card:
+    id: "${A2A_AGENT_ID:stych-data-agent}"
+    name: "${A2A_AGENT_NAME:Stych Data Analysis Agent}"
+    description: "AI agent for automated data analysis, cleaning, and insights generation"
+    version: "1.0.0"
+    capabilities:
+      - "data_analysis"
+      - "data_cleaning"
+      - "question_answering"
+      - "code_generation"
+    supported_formats:
+      - "text/csv"
+      - "application/json"
+      - "text/plain"
+    
+  # Remote agents (A2A clients)
+  remote_agents: []
+  # Example:
+  # - id: "visualization-agent"
+  #   url: "http://localhost:8002"
+  #   capabilities: ["data_visualization"]
+
+upload:
+  max_size_mb: "${UPLOAD_MAX_SIZE_MB:50}"
+  allowed_extensions:
+    - ".csv"
+    - ".xlsx"
+    - ".json"
+
+# Memory configuration.
+# short_term: single-session conversation history. Recent turns are kept verbatim;
+#   older turns are folded into a running LLM summary (compaction) once the history
+#   crosses `compaction.trigger_fraction` of the model's context window. This replaces
+#   the old rolling window — nothing is dropped, older turns are condensed.
+# long_term:  Hindsight persistent memory — opt-in via HINDSIGHT_ENABLED=true.
+#   recall()  injects relevant past facts before each orchestrator decision (~100-300ms).
+#   retain()  persists each turn asynchronously (fire-and-forget, never blocks).
+#   reflect() is intentionally excluded from the hot path.
+memory:
+  short_term:
+    # Hard safety cap on the recent verbatim tail; also the in-query transcript
+    # compaction threshold (react_engine/compaction.py).
+    budget_fraction: 0.70
+    compaction:
+      enabled: true
+      trigger_fraction: 0.30        # summarize when unsummarized history exceeds this * context window
+      keep_recent_messages: 6       # most-recent turns kept verbatim (never summarized)
+      max_summary_tokens: 1500      # cap on the running summary — leaves room for long-term + env block
+  long_term:
+    enabled: "${HINDSIGHT_ENABLED:false}"
+    hindsight:
+      base_url: "${HINDSIGHT_URL:http://localhost:8888}"
+      bank_id_prefix: "stych"       # per-user bank: stych:user:<user_id>
+      recall_budget: "low"          # low ≈ 100-300ms; safe for hot path
+      recall_max_tokens: 1024       # injected into prompt — keep tight
+      retain_extraction_mode: "concise"  # concise | verbose | custom — keeps the knowledge graph small
+
+# File storage backend — set STORAGE_BACKEND=s3 and configure the s3 block for MinIO / AWS S3.
+# Set STORAGE_BACKEND=local (default) for single-node / dev deployments.
+storage:
+  backend: "${STORAGE_BACKEND:local}"   # local | s3
+
+  local:
+    upload_dir: "${UPLOAD_DIR:./data/uploads}"
+    temp_dir: "${TEMP_DIR:./data/temp}"
+    snapshot_dir: "${SNAPSHOT_DIR:./data/snapshots}"
+
+  s3:
+    endpoint_url: "${S3_ENDPOINT_URL}"          # e.g. http://minio:9000 (leave empty for AWS)
+    access_key: "${S3_ACCESS_KEY}"
+    secret_key: "${S3_SECRET_KEY}"
+    bucket: "${S3_BUCKET:stych-uploads}"
+    region: "${S3_REGION:us-east-1}"
+    path_style: "${S3_PATH_STYLE:true}"          # true is required for MinIO
+
+# Per-session workspace shared by all ReAct subagents (analysis, cleaning, …).
+# Relative paths are resolved from the repository root (parent of backend/), not cwd.
+# Override with WORKSPACE_BASE (absolute path) in Docker or custom layouts.
+# Legacy key `cleaning_workspace` and env `CLEANING_WORKSPACE_BASE` are still honored.
+workspace:
+  base_dir: "data/workspaces"
+  sandbox:
+    timeout_seconds: 60
+
+# External data source connectors — for querying user databases and using results
+# like CSV (analyze, clean, visualize). NOT for Stych's own user/session storage.
+# See "database" below for the app's internal DB (auth, users).
+datasources:
+  postgres:
+    enabled: true
+    # Optional default connection (overridden by request body when loading data)
+    default_connection_url: "${POSTGRES_URL}"
+    # 0 means no silent cap. Read-only analysis stays live; when cleaning is
+    # requested the working copy must represent the complete attached source.
+    max_rows: 0
+  sqlserver:
+    enabled: true
+    # Preview remains bounded; working copies are complete.
+    max_rows: 0
+  mongodb:
+    enabled: true
+    # Preview/schema inference remains bounded; working copies are complete.
+    max_rows: 0
+  snowflake:
+    enabled: true
+  redshift:
+    enabled: true
+  bigquery:
+    enabled: true
+  databricks:
+    enabled: true
+  export:
+    # Ceiling on one streamed table download. Override with EXPORT_MAX_ROWS.
+    max_rows: 5_000_000
+
+security:
+  secret_key: "${SECRET_KEY}"
+  algorithm: "HS256"
+  access_token_expire_minutes: 30
+  dev_mode:
+    enabled: "${DEV_MODE:false}"
+    test_user:
+      email: "dev@stych.local"
+      name: "Dev User"
+  
+# Stych app database (auth, users, sessions). Not used as a queryable data source.
+database:
+  # Preferred app DB URL env var.
+  url: "${APP_DATABASE_URL}"
+  # App-owned schema for all backend-managed tables.
+  schema: "${APP_DB_SCHEMA:public}"
+  # Enforce Postgres for app DB.
+  require_postgres: "${APP_DB_REQUIRE_POSTGRES:true}"
+  echo: false
+  pool_size: 5
+  max_overflow: 10
+
+logging:
+  level: "${LOG_LEVEL:INFO}"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "${LOG_FILE:./logs/stych.log}"
+
+usage_limit:
+  # Permanent, account-wide spend cap for users without an exempt email.
+  # Lifetime spend is SUM(estimated_cost_usd) per user; when it reaches
+  # limit_usd the agents stop and further messages return a limit notice.
+  # Disabled by default. Set USAGE_LIMIT_ENABLED=true to turn it on, and
+  # USAGE_LIMIT_EXEMPT_DOMAIN (e.g. yourcompany.com) to exempt an email domain.
+  enabled: "${USAGE_LIMIT_ENABLED:false}"
+  limit_usd: "${USAGE_LIMIT_USD:1.0}"
+  exempt_email_domain: "${USAGE_LIMIT_EXEMPT_DOMAIN:}"
+
+langfuse:
+  # Langfuse observability and tracking
+  enabled: true
+  public_key: "${LANGFUSE_PUBLIC_KEY}"
+  secret_key: "${LANGFUSE_SECRET_KEY}"
+  host: "${LANGFUSE_HOST:http://localhost:3110}"  # Use your Langfuse instance
+
+supertokens:
+  # SuperTokens Core connection
+  # Points to the supertokens-core container
+  connection_uri: "${SUPERTOKENS_CONNECTION_URI:http://localhost:3567}"
+  api_key: "${SUPERTOKENS_API_KEY}"
+
+  # App identity — must match the domains the frontend and backend are served from
+  app_name: "Stych"
+  api_domain: "${API_DOMAIN:http://localhost:8000}"
+  website_domain: "${WEBSITE_DOMAIN:http://localhost:5173}"
+
+  # Base paths for SuperTokens routes (frontend SDK + backend SDK must agree)
+  api_base_path: "/auth"
+  website_base_path: "/auth"

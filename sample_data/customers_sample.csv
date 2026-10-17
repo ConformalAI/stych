@@ -1,0 +1,26 @@
+Index,Customer Id,First Name,Last Name,Company,City,Country,Phone,Email,Subscription Date,Website
+1,C-0001,Alice,Morgan,Northwind Example,Riverton,Canada,555-0101,alice.morgan@example.com,2020-08-24,https://northwind.example.com
+2,C-0002,Bruno,Silva,Contoso Example,Lakeside,Brazil,555-0102,bruno.silva@example.com,2021-04-23,https://contoso.example.com
+3,C-0003,Chen,Wei,Fabrikam Example,Hillview,China,555-0103,chen.wei@example.com,2020-03-25,https://fabrikam.example.com
+4,C-0004,Dana,Okafor,Globex Example,Brookfield,Nigeria,555-0104,dana.okafor@example.com,2022-01-11,https://globex.example.com
+5,C-0005,Elena,Petrova,Initech Example,Maple Grove,Bulgaria,555-0105,elena.petrova@example.com,2021-09-02,https://initech.example.com
+6,C-0006,Farid,Haddad,Umbrella Example,Stonebridge,Lebanon,555-0106,farid.haddad@example.com,2019-12-15,https://umbrella.example.com
+7,C-0007,Grace,Liu,Hooli Example,Pinecrest,Taiwan,555-0107,grace.liu@example.com,2022-06-30,https://hooli.example.com
+8,C-0008,Hiro,Tanaka,Stark Example,Oakmont,Japan,555-0108,hiro.tanaka@example.com,2020-10-19,https://stark.example.com
+9,C-0009,Isabel,Reyes,Wayne Example,Fairhaven,Mexico,555-0109,isabel.reyes@example.com,2021-02-07,https://wayne.example.com
+10,C-0010,Jonas,Berg,Wonka Example,Cedar Falls,Sweden,555-0110,jonas.berg@example.com,2023-03-28,https://wonka.example.com
+11,C-0011,Kavya,Nair,Northwind Example,Riverton,India,555-0111,kavya.nair@example.com,2022-11-05,https://northwind.example.com
+12,C-0012,Liam,O'Connor,Contoso Example,Lakeside,Ireland,555-0112,liam.oconnor@example.com,2020-05-14,https://contoso.example.com
+13,C-0013,Maria,Rossi,Fabrikam Example,Hillview,Italy,555-0113,maria.rossi@example.com,2021-07-21,https://fabrikam.example.com
+14,C-0014,Noah,Kim,Globex Example,Brookfield,South Korea,555-0114,noah.kim@example.com,2023-01-09,https://globex.example.com
+15,C-0015,Olivia,Brown,Initech Example,Maple Grove,United States,555-0115,olivia.brown@example.com,2019-09-30,https://initech.example.com
+16,C-0016,Pedro,Alvarez,Umbrella Example,Stonebridge,Spain,555-0116,pedro.alvarez@example.com,2022-04-17,https://umbrella.example.com
+17,C-0017,Quinn,Doyle,Hooli Example,Pinecrest,Australia,555-0117,quinn.doyle@example.com,2021-12-01,https://hooli.example.com
+18,C-0018,Rhea,Kapoor,Stark Example,Oakmont,India,555-0118,rhea.kapoor@example.com,2020-02-26,https://stark.example.com
+19,C-0019,Samir,Aziz,Wayne Example,Fairhaven,Egypt,555-0119,samir.aziz@example.com,2023-05-12,https://wayne.example.com
+20,C-0020,Tara,Nguyen,Wonka Example,Cedar Falls,Vietnam,555-0120,tara.nguyen@example.com,2022-08-08,https://wonka.example.com
+21,C-0021,Alice,Morgan,Northwind Example,Riverton,Canada,555-0101,alice.morgan@example.com,2020-08-24,https://northwind.example.com
+22,C-0022,Alicia,Morgen,Northwind Example,Riverton,Canada,555-0121,a.morgan@example.com,2020-08-25,https://northwind.example.com
+23,C-0023,Bruno,Silvah,Contoso Example,Lakeside,Brazil,555-0122,bruno.silvah@example.com,2021-04-24,https://contoso.example.com
+24,C-0024,Chen,Wei,Fabrikam Example,Hillview,China,,chen.wei@example.com,,https://fabrikam.example.com
+25,C-0025,Dana,Okafor,Globex Example,Brookfield,Nigeria,555-0104,dana.okafor@example.com,2022-01-11,

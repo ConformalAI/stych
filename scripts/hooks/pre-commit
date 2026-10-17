@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Pre-commit hook: backend (ruff, black, pyclean) + frontend (lint, format check)
+# Runs only against staged files where possible for speed.
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+BACKEND="$REPO_ROOT/backend"
+FRONTEND="$REPO_ROOT/frontend"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+step() { echo -e "${CYAN}▶ $*${NC}"; }
+ok()   { echo -e "${GREEN}✓ $*${NC}"; }
+warn() { echo -e "${YELLOW}⚠ $*${NC}"; }
+fail() { echo -e "${RED}✗ $*${NC}"; exit 1; }
+
+# ── Detect staged Python / TS/TSX files ────────────────────────────────────────
+STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' || true)
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+
+HAS_BACKEND_CHANGES=false
+HAS_FRONTEND_CHANGES=false
+
+[[ -n "$STAGED_PY" ]] && HAS_BACKEND_CHANGES=true
+[[ -n "$STAGED_TS" ]] && HAS_FRONTEND_CHANGES=true
+
+# Also trigger if any backend/frontend file changed (not just py/ts)
+git diff --cached --name-only | grep -q "^backend/" && HAS_BACKEND_CHANGES=true
+git diff --cached --name-only | grep -q "^frontend/" && HAS_FRONTEND_CHANGES=true
+
+# ── BACKEND ─────────────────────────────────────────────────────────────────────
+if $HAS_BACKEND_CHANGES; then
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━ BACKEND ━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    VENV="$BACKEND/.venv/bin"
+    if [[ ! -d "$VENV" ]]; then
+        warn "Backend .venv not found at $VENV — skipping backend checks."
+    else
+        # 1. pyclean: remove .pyc / __pycache__ debris before checks
+        step "pyclean — removing compiled bytecode"
+        "$VENV/pyclean" "$BACKEND" --debris --yes 2>/dev/null \
+            || "$VENV/python" -m pyclean "$BACKEND" 2>/dev/null \
+            || warn "pyclean not available, skipping."
+        ok "pyclean done"
+
+        # 2. ruff check (no auto-fix in pre-commit — fail fast on errors)
+        step "ruff check"
+        if [[ -x "$VENV/ruff" ]]; then
+            RUFF=( "$VENV/ruff" )
+        elif "$VENV/python" -m ruff --version >/dev/null 2>&1; then
+            RUFF=( "$VENV/python" -m ruff )
+        else
+            fail "ruff not found — run: pip install -e \".[dev]\" in backend/"
+        fi
+        if ! "${RUFF[@]}" check "$BACKEND" --output-format=concise; then
+            fail "ruff found errors — fix them before committing."
+        fi
+        ok "ruff clean"
+
+        # 3. black format check (don't auto-format, just block if not formatted)
+        step "black format check"
+        if [[ -x "$VENV/black" ]]; then
+            BLACK=( "$VENV/black" )
+        elif "$VENV/python" -m black --version >/dev/null 2>&1; then
+            BLACK=( "$VENV/python" -m black )
+        else
+            fail "black not found — run: pip install -e \".[dev]\" in backend/"
+        fi
+        if ! "${BLACK[@]}" --check --diff --line-length 100 "$BACKEND" \
+               --exclude '/(\.venv|migrations|alembic/versions)/' 2>&1; then
+            fail "black found unformatted files — run 'black --line-length 100 backend/' to fix."
+        fi
+        ok "black clean"
+    fi
+fi
+
+# ── FRONTEND ────────────────────────────────────────────────────────────────────
+if $HAS_FRONTEND_CHANGES; then
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━ FRONTEND ━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    if [[ ! -d "$FRONTEND/node_modules" ]]; then
+        warn "Frontend node_modules not found — skipping frontend checks."
+    else
+        # 1. Clean Vite / ESLint caches so checks run against fresh state
+        step "clean frontend caches"
+        rm -rf "$FRONTEND/node_modules/.vite" "$FRONTEND/node_modules/.cache"
+        ok "cache cleaned"
+
+        # 2. ESLint (fail on any error; warnings are allowed)
+        step "eslint"
+        if ! npm --prefix "$FRONTEND" run lint -- --max-warnings 9999 2>&1; then
+            fail "ESLint found errors — fix them before committing."
+        fi
+        ok "eslint clean"
+
+        # 3. Prettier format check
+        step "prettier format check"
+        if ! npm --prefix "$FRONTEND" run format:check 2>&1; then
+            fail "Prettier found unformatted files — run 'npm run format' in frontend/ to fix."
+        fi
+        ok "prettier clean"
+    fi
+fi
+
+echo ""
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}  All pre-commit checks passed — proceeding with commit.${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""

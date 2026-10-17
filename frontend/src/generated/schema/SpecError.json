@@ -1,0 +1,24 @@
+{
+  "description": "One structured validation problem; ``path`` is a dotted spec location.",
+  "properties": {
+    "path": {
+      "title": "Path",
+      "type": "string"
+    },
+    "code": {
+      "title": "Code",
+      "type": "string"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    }
+  },
+  "required": [
+    "path",
+    "code",
+    "message"
+  ],
+  "title": "SpecError",
+  "type": "object"
+}

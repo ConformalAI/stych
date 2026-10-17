@@ -1,0 +1,35 @@
+# Agent Registry Configuration
+# Maps agent types to their service URLs for distributed deployment
+
+agents:
+  # In monolithic mode, all agents run on the same server
+  # In distributed mode, each agent runs on its own server/container
+  
+  analysis:
+    url: ${ANALYSIS_AGENT_URL:http://localhost:8000/agents/analysis}
+    enabled: true
+    description: "Data analysis and insights generation"
+  
+  cleaning:
+    url: ${CLEANING_AGENT_URL:http://localhost:8000/agents/cleaning}
+    enabled: true
+    description: "Data quality analysis and cleaning"
+  
+  qa:
+    url: ${QA_AGENT_URL:http://localhost:8000/agents/qa}
+    enabled: true
+    description: "Question answering about datasets"
+  
+  orchestrator:
+    url: ${ORCHESTRATOR_AGENT_URL:http://localhost:8000/agents/orchestrator}
+    enabled: true
+    description: "Routes requests to appropriate agents"
+
+# Deployment mode
+mode: ${DEPLOYMENT_MODE:monolithic}  # Options: monolithic, distributed
+
+# A2A Protocol settings
+a2a:
+  timeout: 30  # Request timeout in seconds
+  streaming: true  # Enable streaming responses
+  retry_attempts: 3  # Number of retry attempts for failed requests

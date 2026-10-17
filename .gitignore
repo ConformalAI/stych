@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# Python Package Manager
+pip-lock.txt
+Pipfile.lock
+poetry.lock
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+*.env
+
+# Build
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Data files (uploads, temp, and runtime-generated storage)
+backend/data/uploads/*
+backend/data/temp/*
+backend/data/state/*
+backend/data/snapshots/*
+backend/data/workspace-archives/*
+!backend/data/uploads/.gitkeep
+!backend/data/temp/.gitkeep
+
+# Repo-root cleaning sandboxes (outside backend/)
+data/cleaning_workspaces/*
+!data/cleaning_workspaces/.gitkeep
+
+# Repo-root per-session workspaces (runtime-generated datasets & artifacts)
+data/workspaces/
+
+# Repo-root runtime data (config.yaml / TEMP_DIR default to repo-root data/)
+data/snapshots/
+data/uploads/
+data/workspace-archives/
+data/temp/
+
+# Local-only sample datasets
+data/testdata/
+
+# Testing
+.pytest_cache/
+backend/tests/test_runs/
+.coverage
+htmlcov/
+*.cover
+
+# Logs
+*.log
+logs/
+
+.DS_Store
+*.DS_Store
+.DS_Store
+backend/.DS_Store
+
+docs/PLATFORM_VISION.md
+
+AGENTS.md
+CLAUDE.md
+.claude/
+.agents/
+
+# Server-only files for infra/services (never commit)
+infra/services/dozzle/users.yml

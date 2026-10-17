@@ -1,0 +1,285 @@
+# =============================================================================
+# Stych Routing Configuration
+# =============================================================================
+#
+# This file controls all AI decision logic: intent routing, data quality
+# thresholds, chart heuristics, and cleaning operation selection.
+#
+# It is deep-merged into the main config at startup (see main.py load_config).
+# Keys here take precedence over any matching keys in config.yaml.
+#
+# Prompts use {variable} placeholders substituted at runtime.
+# Keyword lists use substring matching on lowercased messages.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Hybrid routing
+#
+# 1. Fast-path: if any keyword in `keywords.<intent>` matches the message,
+#    route immediately without an LLM call.
+# 2. LLM router: everything else is sent to a cheap/fast model using
+#    `router_prompt`. Returns {"intent": str, "confidence": float, "also_chart": bool}.
+#
+# Keep fast-path keywords UNAMBIGUOUS — if a term could mean multiple things,
+# leave it to the LLM router instead of adding it here.
+# ---------------------------------------------------------------------------
+routing:
+  # ReAct loop for the orchestrator (task decomposition via call_agent).
+  orchestrate_react:
+    react_max_steps: 20
+    # Optional: override the model for orchestrator planning only (not sub-agents).
+    # orchestrate_model: "${ORCHESTRATE_MODEL:}"
+
+  # Model for all routing / decision calls. Should be fast and cheap.
+  # Overrides the main llm.*.default_model only for routing decisions.
+  # Leave empty to use the provider's default model.
+  router_model: "${ROUTER_MODEL:}"
+
+  # Fast-path keyword lists per intent.
+  # Match is substring on lowercased message.
+  keywords:
+    visualization:
+      - "plot"
+      - "chart"
+      - "bar chart"
+      - "line chart"
+      - "pie chart"
+      - "scatter plot"
+      - "histogram"
+      - "heatmap"
+      - "boxplot"
+      - "visualiz"
+      - "draw a"
+      - "show me a graph"
+    cleaning:
+      - "remove duplicates"
+      - "deduplicate"
+      - "handle missing"
+      - "fix data types"
+      - "data quality check"
+      - "preprocess the data"
+      - "clean the dataset"
+      - "clean the data"
+
+  # Domains allowed for domain_qa intent.
+  # If the LLM routes to domain_qa and the detected domain is NOT in this list,
+  # the orchestrator returns a polite refusal instead of answering.
+  # Set to an empty list [] to allow all domains the LLM identifies.
+  domain_qa_domains:
+    - "statistics"
+    - "machine_learning"
+    - "sql"
+    - "data_engineering"
+    - "data_cleaning"
+    - "visualization"
+    - "probability"
+    - "python"
+    - "pandas"
+    - "data_science"
+    - "databases"
+    - "etl"
+    - "data_modeling"
+
+  # System prompt for answer_knowledge() in QAAgent.
+  # Used when intent == domain_qa and the domain is allowed.
+  domain_qa_prompt: |
+    You are a data knowledge assistant specialising in data science,
+    data engineering, and analytics concepts. You help data professionals
+    quickly look up definitions, explanations, and best practices without
+    leaving their workflow.
+
+    Answer questions about: statistics, machine learning, SQL, data engineering,
+    data cleaning, data visualization, probability, Python, pandas, databases,
+    ETL pipelines, and data modeling.
+
+    If the question is clearly outside these domains (e.g. history, celebrities,
+    general news, cooking, sports), politely decline and suggest the user search
+    elsewhere.
+
+    Keep answers concise but complete. Use examples and code snippets where helpful.
+
+  # LLM router prompt.
+  # Injected variables: {message}, {columns}, {history}
+  # Must return JSON: {"intent": str, "confidence": float, "also_chart": bool, "domain": str}
+  router_prompt: |
+    You are a routing assistant for a data analysis platform.
+    Route the user message to exactly one agent.
+
+    Available intents:
+    - "visualization"      : user explicitly wants a chart, plot, or graph
+    - "analysis_with_data" : user asks a specific question about the data (counts, averages, top-N, comparisons, rankings, listings)
+    - "cleaning"           : user wants to clean, fix, or preprocess the data
+    - "general_analysis"   : user wants a broad summary, statistics, overview, or correlation analysis
+    - "domain_qa"          : conceptual or knowledge question about data science, statistics, SQL, ML, Python, pandas, data engineering — no dataset needed to answer
+    - "qa"                 : any other question (general chat, unclear intent, off-topic)
+
+    Dataset columns: {columns}
+    Recent conversation (last 3 turns): {history}
+    User message: "{message}"
+
+    Rules:
+    - Use "domain_qa" when the question is asking "what is X", "how does Y work", "explain Z" about a data/tech concept.
+      Examples: "what is an anomaly?", "explain z-score", "how does gradient boosting work?", "what is a foreign key?"
+    - Use "qa" for anything else that doesn't fit the above intents (greetings, off-topic, unclear).
+    - If the question involves grouping by a category or date, prefer "analysis_with_data".
+    - If the question asks for a visual AND specific data, prefer "visualization".
+    - Set also_chart=true when the answer would benefit from a chart even if not explicitly requested
+      (e.g. "what are the top 10 products by revenue?" is naturally visual).
+    - Set also_chart=false for simple lookups, counts, QA, or domain_qa questions.
+    - confidence: 0.0-1.0 how certain you are.
+    - domain: for domain_qa, set the domain label (e.g. "statistics", "sql", "machine_learning", "python", "data_engineering"). Leave empty for other intents.
+
+    Respond with ONLY valid JSON, no markdown:
+    {{"intent": "...", "confidence": 0.92, "also_chart": false, "domain": ""}}
+
+
+# ---------------------------------------------------------------------------
+# Data quality thresholds
+#
+# These values are passed as *signals* to the LLM cleaning judgement — they
+# are not hard gates. The LLM makes the final decision on whether to suggest
+# cleaning, informed by these metrics.
+# ---------------------------------------------------------------------------
+quality:
+  # Fraction of cells missing before flagging as a quality issue.
+  missing_ratio_threshold: 0.10
+
+  # Fraction of rows that must be duplicates before flagging.
+  # 0.001 = 0.1%, so 1 duplicate in 1000 rows triggers the signal.
+  duplicate_ratio_threshold: 0.001
+
+  # Absolute minimum duplicate count — prevents flagging 1 duplicate in 1M rows.
+  duplicate_min_count: 5
+
+  # Object column where this fraction of values parse as numeric
+  # is flagged as a potential dtype mismatch (e.g. "123" stored as text).
+  dtype_mismatch_parse_ratio: 0.80
+
+  # Z-score threshold above which a value is considered an outlier.
+  outlier_zscore_threshold: 3.0
+
+  # Fraction of column values that must be outliers before flagging the column.
+  outlier_ratio_threshold: 0.05
+
+  # Minimum row count required before outlier detection is applied.
+  # Fewer rows make z-score unreliable.
+  outlier_min_sample: 30
+
+  # Keywords that flag a question as "sensitive" to data quality.
+  # Used as one signal (alongside quality metrics) when the LLM decides
+  # whether to suggest cleaning before analysis.
+  sensitive_keywords:
+    - "average"
+    - "mean"
+    - "median"
+    - "sum"
+    - "total"
+    - "trend"
+    - "correlation"
+    - "regression"
+    - "distribution"
+    - "forecast"
+    - "predict"
+
+  # LLM prompt for interpreting ambiguous cleaning consent replies.
+  # Injected variable: {message}
+  # Expected response: a single word — YES or NO.
+  cleaning_consent_prompt: |
+    A user was asked: "Do you want me to clean the data before analysis?"
+    Their reply was: "{message}"
+    Answer with exactly one word — YES or NO — based on their intent.
+    If ambiguous, answer NO.
+
+
+# ---------------------------------------------------------------------------
+# Chart / graph heuristics
+# ---------------------------------------------------------------------------
+graph:
+  # A column is excluded from x-axis candidates when:
+  #   (uniqueness ratio > id_column_uniqueness_threshold) AND (row count >= id_column_min_rows)
+  # Raising the threshold to 0.95 prevents valid small-dataset category columns
+  # (e.g. 9 unique products in a 10-row sample) from being excluded.
+  id_column_uniqueness_threshold: 0.95
+  id_column_min_rows: 50
+
+  # How many rows to sample when detecting whether a pandas Series contains dates.
+  # Larger sample reduces false positives from sorted/early-date data.
+  date_detection_sample_size: 50
+
+  # Minimum fraction of sampled rows that must parse as datetime.
+  date_detection_parse_ratio: 0.80
+
+  # When the LLM returns groupByPeriod="none" on a date x-axis, auto-apply
+  # monthly grouping if unique date count exceeds this threshold.
+  # Only applies to bar charts; line/area always get monthly grouping.
+  date_grouping_suggest_threshold: 20
+
+# ReAct visualization agent (VizSpec author/editor over backend/viz/).
+graph_react:
+  # Spec authoring is a short loop: list_fields → preview → create/update → answer.
+  react_max_steps: 12
+  # Optional model override for the graph agent; falls back to the router default.
+  # graph_model: "anthropic/claude-sonnet-5"
+
+
+# ---------------------------------------------------------------------------
+# Cleaning agent operation selection
+# ---------------------------------------------------------------------------
+cleaning:
+  # Minimum fraction of rows that must be duplicates before suggesting dedup.
+  # 0.001 = 0.1% — so 1 duplicate in 1M rows is safely ignored.
+  duplicate_min_ratio: 0.001
+
+  # Absolute floor: fewer duplicates than this are never flagged regardless of ratio.
+  duplicate_min_count: 5
+
+  # LLM prompt for selecting which cleaning operations to apply.
+  # Injected variables: {metrics_json}, {columns_json}
+  # Expected response: a JSON array of operation strings.
+  cleaning_ops_prompt: |
+    You are a data cleaning advisor. Given quality metrics for a dataset,
+    decide which cleaning operations are actually necessary.
+
+    Quality metrics: {metrics_json}
+    Column names and types: {columns_json}
+
+    Available operations:
+    - "remove_duplicates"            : remove duplicate rows
+    - "handle_missing:<col1>,<col2>" : fill missing values in specific columns (use column names)
+
+    Rules:
+    - Only suggest "remove_duplicates" if duplicates are likely real errors, not legitimate repeated entries.
+    - Only suggest "handle_missing" for columns where missing values would distort analysis.
+    - If the data looks acceptably clean, return an empty list.
+    - Do NOT suggest operations that would destroy legitimate data.
+
+    Respond with ONLY a JSON array, no markdown:
+    ["remove_duplicates", "handle_missing:revenue,quantity"]
+
+
+# ---------------------------------------------------------------------------
+# Analysis agent — ReAct loop settings
+# ---------------------------------------------------------------------------
+analysis:
+  # Maximum number of Thought→Action→Observation iterations before the loop
+  # forces a final answer from whatever observations were collected.
+  # Higher = more thorough for complex multi-hop questions; lower = faster/cheaper.
+  react_max_steps: 30
+
+  # Step budget for Postgres (SQL) sessions. The SQL loop runs one run_sql per
+  # sub-question (schema + several focused queries + synthesis), so a complex
+  # multi-part analysis needs headroom beyond a single query.
+  sql_react_max_steps: 12
+
+  # The ReAct system prompt lives in code (agents/analysis/agent.py:_DEFAULT_REACT_PROMPT /
+  # _SQL_REACT_PROMPT) so it stays in sync with the native-tool engine. Do not re-add a
+  # react_agent_prompt override here — a stale one silently breaks the finalize step.
+
+# ---------------------------------------------------------------------------
+# FilterAgent (saved preview filters). The system prompt itself lives in code
+# (agents/filter/agent.py _DEFAULT_PROMPT) and can be overridden here with a
+# react_agent_prompt key; only loop tuning is configured by default.
+# ---------------------------------------------------------------------------
+filter:
+  react_max_steps: 16

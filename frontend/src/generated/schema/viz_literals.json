@@ -1,0 +1,69 @@
+{
+  "FieldType": [
+    "quantitative",
+    "nominal",
+    "ordinal",
+    "temporal"
+  ],
+  "Aggregate": [
+    "sum",
+    "mean",
+    "min",
+    "max",
+    "count",
+    "distinct"
+  ],
+  "TimeUnit": [
+    "year",
+    "quarter",
+    "month",
+    "week",
+    "day",
+    "hour"
+  ],
+  "MarkType": [
+    "bar",
+    "line",
+    "area",
+    "scatter",
+    "pie",
+    "histogram",
+    "heatmap"
+  ],
+  "TexturePattern": [
+    "diagonal",
+    "horizontal",
+    "vertical",
+    "dots",
+    "grid",
+    "crosshatch"
+  ],
+  "ColorMode": [
+    "single",
+    "categorical",
+    "continuous"
+  ],
+  "ColorChannel": [
+    "x",
+    "y",
+    "color"
+  ],
+  "SortDir": [
+    "asc",
+    "desc"
+  ],
+  "Predicate": [
+    "eq",
+    "neq",
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+    "between",
+    "in",
+    "notin",
+    "contains",
+    "isnull",
+    "notnull"
+  ]
+}

@@ -1,0 +1,744 @@
+{
+  "$defs": {
+    "BinDef": {
+      "additionalProperties": false,
+      "description": "Equal-width binning of a quantitative field.",
+      "properties": {
+        "maxbins": {
+          "default": 10,
+          "maximum": 100,
+          "minimum": 2,
+          "title": "Maxbins",
+          "type": "integer"
+        }
+      },
+      "title": "BinDef",
+      "type": "object"
+    },
+    "CalculateTransform": {
+      "additionalProperties": false,
+      "description": "A derived column: ``expr`` (viz.expr language) projected as field ``as``.",
+      "properties": {
+        "op": {
+          "const": "calculate",
+          "default": "calculate",
+          "title": "Op",
+          "type": "string"
+        },
+        "expr": {
+          "title": "Expr",
+          "type": "string"
+        },
+        "as": {
+          "title": "As",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expr",
+        "as"
+      ],
+      "title": "CalculateTransform",
+      "type": "object"
+    },
+    "ChannelDef": {
+      "additionalProperties": false,
+      "description": "A field \u2192 visual channel mapping.",
+      "properties": {
+        "metric": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field"
+        },
+        "type": {
+          "default": "nominal",
+          "enum": [
+            "quantitative",
+            "nominal",
+            "ordinal",
+            "temporal"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "aggregate": {
+          "anyOf": [
+            {
+              "enum": [
+                "sum",
+                "mean",
+                "min",
+                "max",
+                "count",
+                "distinct"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aggregate"
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "enum": [
+                "year",
+                "quarter",
+                "month",
+                "week",
+                "day",
+                "hour"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timeunit"
+        },
+        "bin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BinDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sort": {
+          "anyOf": [
+            {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/SortByEncoding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sort"
+        },
+        "topK": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TopKDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        }
+      },
+      "title": "ChannelDef",
+      "type": "object"
+    },
+    "ColorAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "color": {
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "color"
+      ],
+      "title": "ColorAssignment",
+      "type": "object"
+    },
+    "ColorBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "enum": [
+            "x",
+            "y",
+            "color"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field"
+        }
+      },
+      "required": [
+        "channel"
+      ],
+      "title": "ColorBinding",
+      "type": "object"
+    },
+    "ColorConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "single",
+            "categorical",
+            "continuous"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Palette"
+        },
+        "binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ColorBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "assignments": {
+          "items": {
+            "$ref": "#/$defs/ColorAssignment"
+          },
+          "maxItems": 500,
+          "title": "Assignments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "ColorConfig",
+      "type": "object"
+    },
+    "DataRef": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "default": "active",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "title": "DataRef",
+      "type": "object"
+    },
+    "Encoding": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "y": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tooltip": {
+          "items": {
+            "$ref": "#/$defs/ChannelDef"
+          },
+          "title": "Tooltip",
+          "type": "array"
+        },
+        "row": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "column": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChannelDef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Encoding",
+      "type": "object"
+    },
+    "FilterAnyTransform": {
+      "additionalProperties": false,
+      "description": "An OR of filter-AND clauses, used for exact multi-mark selections.",
+      "properties": {
+        "op": {
+          "const": "filter_any",
+          "default": "filter_any",
+          "title": "Op",
+          "type": "string"
+        },
+        "clauses": {
+          "items": {
+            "items": {
+              "$ref": "#/$defs/FilterTransform"
+            },
+            "type": "array"
+          },
+          "minItems": 1,
+          "title": "Clauses",
+          "type": "array"
+        }
+      },
+      "required": [
+        "clauses"
+      ],
+      "title": "FilterAnyTransform",
+      "type": "object"
+    },
+    "FilterTransform": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "filter",
+          "default": "filter",
+          "title": "Op",
+          "type": "string"
+        },
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "predicate": {
+          "enum": [
+            "eq",
+            "neq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between",
+            "in",
+            "notin",
+            "contains",
+            "isnull",
+            "notnull"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "value": {}
+      },
+      "required": [
+        "field",
+        "predicate"
+      ],
+      "title": "FilterTransform",
+      "type": "object"
+    },
+    "MarkDef": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "default": "bar",
+          "enum": [
+            "bar",
+            "line",
+            "area",
+            "scatter",
+            "pie",
+            "histogram",
+            "heatmap"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "stacked": {
+          "default": false,
+          "title": "Stacked",
+          "type": "boolean"
+        },
+        "smooth": {
+          "default": false,
+          "title": "Smooth",
+          "type": "boolean"
+        },
+        "point": {
+          "default": false,
+          "title": "Point",
+          "type": "boolean"
+        }
+      },
+      "title": "MarkDef",
+      "type": "object"
+    },
+    "SortByEncoding": {
+      "additionalProperties": false,
+      "description": "Sort a channel BY another channel's value (Vega-Lite sort-by-encoding).\n\nA bare ``\"asc\"``/``\"desc\"`` on a dimension orders it by its own values\n(alphabetical); this form orders it by a *different* channel \u2014 e.g. a bar\nchart's categorical x sorted by its y measure: ``{\"encoding\":\"y\",\"order\":\"desc\"}``.\nBoth compilers already ORDER BY the referenced channel's output column, so no\nengine change is needed.",
+      "properties": {
+        "encoding": {
+          "enum": [
+            "x",
+            "y",
+            "color",
+            "size"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "order": {
+          "default": "desc",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "title": "Order",
+          "type": "string"
+        }
+      },
+      "required": [
+        "encoding"
+      ],
+      "title": "SortByEncoding",
+      "type": "object"
+    },
+    "TextureConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "pattern": {
+          "default": "diagonal",
+          "enum": [
+            "diagonal",
+            "horizontal",
+            "vertical",
+            "dots",
+            "grid",
+            "crosshatch"
+          ],
+          "title": "Pattern",
+          "type": "string"
+        }
+      },
+      "title": "TextureConfig",
+      "type": "object"
+    },
+    "TopKDef": {
+      "additionalProperties": false,
+      "description": "Keep the top-n groups of a dimension (ranked by the first measure).",
+      "properties": {
+        "n": {
+          "default": 20,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "N",
+          "type": "integer"
+        },
+        "others": {
+          "default": false,
+          "title": "Others",
+          "type": "boolean"
+        }
+      },
+      "title": "TopKDef",
+      "type": "object"
+    },
+    "VizConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ColorConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Palette"
+        },
+        "texture": {
+          "$ref": "#/$defs/TextureConfig"
+        },
+        "legend": {
+          "default": true,
+          "title": "Legend",
+          "type": "boolean"
+        },
+        "grid": {
+          "default": true,
+          "title": "Grid",
+          "type": "boolean"
+        },
+        "labels": {
+          "default": false,
+          "title": "Labels",
+          "type": "boolean"
+        },
+        "labelFontSize": {
+          "anyOf": [
+            {
+              "maximum": 32,
+              "minimum": 8,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Labelfontsize"
+        },
+        "labelColor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Labelcolor"
+        },
+        "numberFormat": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numberformat"
+        }
+      },
+      "title": "VizConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Title"
+    },
+    "data": {
+      "$ref": "#/$defs/DataRef"
+    },
+    "transform": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "calculate": "#/$defs/CalculateTransform",
+            "filter": "#/$defs/FilterTransform",
+            "filter_any": "#/$defs/FilterAnyTransform"
+          },
+          "propertyName": "op"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/FilterTransform"
+          },
+          {
+            "$ref": "#/$defs/FilterAnyTransform"
+          },
+          {
+            "$ref": "#/$defs/CalculateTransform"
+          }
+        ]
+      },
+      "title": "Transform",
+      "type": "array"
+    },
+    "mark": {
+      "$ref": "#/$defs/MarkDef"
+    },
+    "encoding": {
+      "$ref": "#/$defs/Encoding"
+    },
+    "config": {
+      "$ref": "#/$defs/VizConfig"
+    }
+  },
+  "title": "VizSpec",
+  "type": "object"
+}

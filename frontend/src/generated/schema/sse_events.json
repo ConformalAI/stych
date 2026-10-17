@@ -1,0 +1,23 @@
+{
+  "name": "SseEventType",
+  "values": [
+    "thinking",
+    "part.updated",
+    "token",
+    "token_retract",
+    "thinking_token",
+    "heartbeat",
+    "error",
+    "result",
+    "timeout",
+    "limit_reached",
+    "cancelled",
+    "run_snapshot",
+    "viz",
+    "filter",
+    "ontology",
+    "compaction_start",
+    "compaction_end",
+    "reasoning"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "TaskType",
+  "values": [
+    "analysis",
+    "auto",
+    "cleaning",
+    "eda",
+    "filter",
+    "linking",
+    "ontology",
+    "qa"
+  ]
+}

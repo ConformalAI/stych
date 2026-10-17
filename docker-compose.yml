@@ -1,0 +1,127 @@
+# Stych - self-hosted stack (single machine).
+#
+#   1. Copy .env.example to .env and fill in the required values.
+#   2. Start everything:   docker compose up -d --build
+#   3. Open PUBLIC_URL (default http://localhost:8080) and sign up. Accounts whose email is
+#      listed in ADMIN_EMAILS have admin rights.
+#
+# Services: app database, SuperTokens (auth) + its database, LiteLLM (LLM gateway),
+# the API backend, and the web frontend (nginx, proxies /api and /auth to the backend).
+# The backend applies database migrations automatically on every start.
+
+name: stych
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  db:
+    <<: *restart
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: stych
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: stych_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stych -d stych_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  supertokens-db:
+    <<: *restart
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: supertokens
+      POSTGRES_PASSWORD: ${SUPERTOKENS_DB_PASSWORD:?Set SUPERTOKENS_DB_PASSWORD in .env}
+      POSTGRES_DB: supertokens
+    volumes:
+      - supertokens_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supertokens -d supertokens"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  supertokens:
+    <<: *restart
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:latest
+    depends_on:
+      supertokens-db:
+        condition: service_healthy
+    environment:
+      POSTGRESQL_CONNECTION_URI: postgresql://supertokens:${SUPERTOKENS_DB_PASSWORD}@supertokens-db:5432/supertokens
+      API_KEYS: ${SUPERTOKENS_API_KEY:?Set SUPERTOKENS_API_KEY in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:3567/hello || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  litellm:
+    <<: *restart
+    image: ghcr.io/berriai/litellm:main-latest
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in .env}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ./docker/litellm_config.yaml:/app/config.yaml:ro
+
+  backend:
+    <<: *restart
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      supertokens:
+        condition: service_healthy
+      litellm:
+        condition: service_started
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DEV_MODE: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      CORS_ORIGINS: ${PUBLIC_URL:-http://localhost:8080}
+      API_DOMAIN: ${PUBLIC_URL:-http://localhost:8080}
+      WEBSITE_DOMAIN: ${PUBLIC_URL:-http://localhost:8080}
+      APP_DATABASE_URL: postgresql://stych:${POSTGRES_PASSWORD}@db:5432/stych_db
+      APP_DB_SCHEMA: public
+      APP_DB_REQUIRE_POSTGRES: "true"
+      SUPERTOKENS_CONNECTION_URI: http://supertokens:3567
+      SUPERTOKENS_API_KEY: ${SUPERTOKENS_API_KEY}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY}
+      LITELLM_DEFAULT_MODEL: ${LITELLM_DEFAULT_MODEL:-openrouter/anthropic/claude-sonnet-4.5}
+      STORAGE_BACKEND: local
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      HINDSIGHT_ENABLED: "false"
+    volumes:
+      - app_data:/app/data
+      - workspaces:/data
+
+  frontend:
+    <<: *restart
+    build:
+      context: ./frontend
+      args:
+        VITE_SUPERTOKENS_API_DOMAIN: ${PUBLIC_URL:-http://localhost:8080}
+        VITE_SUPERTOKENS_WEBSITE_DOMAIN: ${PUBLIC_URL:-http://localhost:8080}
+    depends_on:
+      - backend
+    ports:
+      - "${STYCH_PORT:-8080}:80"
+
+volumes:
+  db_data:
+  supertokens_db_data:
+  app_data:
+  workspaces:

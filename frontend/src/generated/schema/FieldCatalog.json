@@ -1,0 +1,194 @@
+{
+  "$defs": {
+    "FieldInfo": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "default_aggregate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Aggregate"
+        },
+        "cardinality": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cardinality"
+        },
+        "null_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Null Pct"
+        },
+        "samples": {
+          "items": {},
+          "title": "Samples",
+          "type": "array"
+        },
+        "is_id": {
+          "default": false,
+          "title": "Is Id",
+          "type": "boolean"
+        },
+        "db_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Db Type"
+        },
+        "format_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format Hint"
+        },
+        "is_calculated": {
+          "default": false,
+          "title": "Is Calculated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "role"
+      ],
+      "title": "FieldInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "fingerprint": {
+      "title": "Fingerprint",
+      "type": "string"
+    },
+    "built_at": {
+      "title": "Built At",
+      "type": "string"
+    },
+    "engine": {
+      "title": "Engine",
+      "type": "string"
+    },
+    "row_count": {
+      "title": "Row Count",
+      "type": "integer"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/$defs/FieldInfo"
+      },
+      "title": "Fields",
+      "type": "array"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source"
+    },
+    "scope": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scope"
+    },
+    "freshness": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Freshness"
+    },
+    "row_limit": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Row Limit"
+    },
+    "truncated": {
+      "default": false,
+      "title": "Truncated",
+      "type": "boolean"
+    },
+    "schema_complete": {
+      "default": true,
+      "title": "Schema Complete",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "fingerprint",
+    "built_at",
+    "engine",
+    "row_count",
+    "fields"
+  ],
+  "title": "FieldCatalog",
+  "type": "object"
+}
